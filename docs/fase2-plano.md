@@ -110,7 +110,7 @@ Cada fase termina com algo usável em produção.
 - Na primeira entrada, se houver ficha no `localStorage`, oferece importar.
 - Export JSON/PDF continua igual.
 
-### Fase 2.2 — Ficha em jogo
+### Fase 2.2 — Ficha em jogo ✅
 - Botão "Finalizar criação" → ficha vira `active` (criação travada).
 - Tela de jogo: nuyen e karma com histórico, monitor de condição, notas.
 - Diário de missões, com recompensas lançadas no histórico.

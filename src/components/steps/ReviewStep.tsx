@@ -7,6 +7,7 @@ import { label, sr5Data } from '@/lib/sr5/data';
 import { ATTR_LABEL, fmtNuyen, isComplete, STEP_ORDER, WARE_GRADES, type StepKey } from '@/lib/sr5/rules';
 import type { AttrKey } from '@/lib/sr5/types';
 import type { StepProps } from '../wizard/Wizard';
+import { useWizardExtras } from '../wizard/WizardExtras';
 import { Button, Card, cx, IssueList, StepIntro } from '../ui';
 import { fmtEss, shortTalent, talentAt } from './shared';
 
@@ -28,6 +29,7 @@ export function ReviewStep({ draft, result, goTo }: StepProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string>();
   const complete = isComplete(result);
+  const extras = useWizardExtras();
 
   const exportJson = () => download(exportFilename(draft), toJson(draft), 'application/json');
 
@@ -59,8 +61,10 @@ export function ReviewStep({ draft, result, goTo }: StepProps) {
         </div>
         {importError && <p className="mt-2 text-sm text-danger">{importError}</p>}
         <p className="mt-2 text-xs text-faint">
-          A ficha fica salva só neste navegador. Exporte o JSON para guardar uma cópia ou abrir em outro lugar. No PDF,
-          escolha “Salvar como PDF” na janela de impressão.
+          {extras.savedIn === 'account'
+            ? 'A ficha fica salva na sua conta. Exporte o JSON se quiser uma cópia fora do Fixer.'
+            : 'A ficha fica salva só neste navegador. Exporte o JSON para guardar uma cópia ou abrir em outro lugar.'}{' '}
+          No PDF, escolha “Salvar como PDF” na janela de impressão.
         </p>
 
         {result.issues.length > 0 && (
@@ -80,14 +84,26 @@ export function ReviewStep({ draft, result, goTo }: StepProps) {
             })}
           </div>
         )}
+
+        {/* Depois dos avisos, para serem lidos antes de travar a ficha. */}
+        {extras.reviewActions}
       </div>
 
-      <Sheet draft={draft} result={result} />
+      <CharacterSheet draft={draft} result={result} />
     </div>
   );
 }
 
-function Sheet({ draft, result }: Omit<StepProps, 'goTo'>) {
+/**
+ * Ficha completa (também usada na tela de jogo).
+ * `showRemaining`: mostra o karma/nuyen que sobrou na criação (escondido em jogo,
+ * onde o saldo de verdade é o do histórico).
+ */
+export function CharacterSheet({
+  draft,
+  result,
+  showRemaining = true,
+}: Omit<StepProps, 'goTo'> & { showRemaining?: boolean }) {
   const metatype = sr5Data.metatypes.find((m) => m.id === draft.metatypeId);
   const talent = talentAt(draft.priorities.talent, draft.talent);
   const a = result.attributes;
@@ -207,10 +223,12 @@ function Sheet({ draft, result }: Omit<StepProps, 'goTo'>) {
         </Block>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-x-8 gap-y-1 border-t border-line pt-3 text-sm">
-        <span>Karma restante: <strong className={cx('font-mono', result.budgets.karma.remaining < 0 && 'text-danger')}>{result.budgets.karma.remaining}</strong></span>
-        <span>Nuyen restante: <strong className={cx('font-mono', result.budgets.nuyen.remaining < 0 && 'text-danger')}>{fmtNuyen(result.budgets.nuyen.remaining)}</strong></span>
-      </div>
+      {showRemaining && (
+        <div className="mt-5 flex flex-wrap gap-x-8 gap-y-1 border-t border-line pt-3 text-sm">
+          <span>Karma restante: <strong className={cx('font-mono', result.budgets.karma.remaining < 0 && 'text-danger')}>{result.budgets.karma.remaining}</strong></span>
+          <span>Nuyen restante: <strong className={cx('font-mono', result.budgets.nuyen.remaining < 0 && 'text-danger')}>{fmtNuyen(result.budgets.nuyen.remaining)}</strong></span>
+        </div>
+      )}
       {draft.concept.notes && <p className="mt-3 whitespace-pre-wrap text-sm text-muted">{draft.concept.notes}</p>}
       <p className="print-only mt-6 text-[10px]">
         Gerado pelo Fixer. Dados de regras derivados do Chummer5a (GPL-3.0). Shadowrun é marca da The Topps Company, Inc.

@@ -100,12 +100,27 @@ describe('autosave na conta', () => {
     const p = createCloudPersistence({ id: 'x', initial: { draft: draft(''), step: 0 }, save, delay: 10_000 });
 
     p.save({ draft: draft('A'), step: 3 });
-    p.dispose!();
-    await vi.advanceTimersByTimeAsync(0);
+    await expect(p.dispose!()).resolves.toBe(true);
     expect(save).toHaveBeenCalledWith('x', draft('A'), 3);
 
-    p.dispose!(); // sem pendência: não grava de novo
-    await vi.advanceTimersByTimeAsync(0);
+    await expect(p.dispose!()).resolves.toBe(true); // sem pendência: não grava de novo
     expect(save).toHaveBeenCalledTimes(1);
+  });
+
+  it('dispose espera a gravação em andamento e avisa se falhou', async () => {
+    const { createCloudPersistence } = await fresh();
+    const { save, calls } = manualSaver();
+    const p = createCloudPersistence({ id: 'x', initial: { draft: draft(''), step: 0 }, save, delay: 10 });
+
+    p.save({ draft: draft('A'), step: 0 });
+    await vi.advanceTimersByTimeAsync(10);
+    let done: boolean | undefined;
+    void Promise.resolve(p.dispose!()).then((r) => (done = r as boolean));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(done).toBeUndefined(); // ainda gravando
+
+    calls[0].resolve({ ok: false, error: 'Fora do ar' });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(done).toBe(false);
   });
 });

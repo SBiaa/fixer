@@ -51,7 +51,8 @@ export function createCloudPersistence(opts: {
   const { id, initial, save, delay = 800, retryDelay = 5000 } = opts;
   let latest: WizardState | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let inFlight = false;
+  /** Gravação em andamento (inclui as mudanças que chegarem enquanto grava). */
+  let running: Promise<void> | null = null;
 
   setStatus({ kind: 'saved' });
 
@@ -60,33 +61,38 @@ export function createCloudPersistence(opts: {
     timer = setTimeout(flush, ms);
   }
 
-  async function flush() {
+  async function saveLoop() {
+    while (latest) {
+      const current = latest;
+      latest = null;
+      setStatus({ kind: 'saving' });
+
+      let result: SaveResult;
+      try {
+        result = await save(id, current.draft, current.step);
+      } catch {
+        result = { ok: false, error: 'Sem conexão. Tentando de novo…' };
+      }
+
+      if (!result.ok) {
+        latest ??= current; // não perde a mudança: tenta de novo depois
+        setStatus({ kind: 'error', message: result.error });
+        schedule(retryDelay);
+        return;
+      }
+      if (!latest) setStatus({ kind: 'saved', at: result.savedAt });
+      // Se mudou enquanto gravava, o laço grava de novo.
+    }
+  }
+
+  function flush(): Promise<void> {
     clearTimeout(timer);
-    if (!latest || inFlight) return;
-    const current = latest;
-    latest = null;
-    inFlight = true;
-    setStatus({ kind: 'saving' });
-
-    let result: SaveResult;
-    try {
-      result = await save(id, current.draft, current.step);
-    } catch {
-      result = { ok: false, error: 'Sem conexão. Tentando de novo…' };
-    }
-    inFlight = false;
-
-    if (!result.ok) {
-      latest ??= current; // não perde a mudança: tenta de novo depois
-      setStatus({ kind: 'error', message: result.error });
-      schedule(retryDelay);
-      return;
-    }
-    if (latest) {
-      flush(); // mudou enquanto gravava
-    } else {
-      setStatus({ kind: 'saved', at: result.savedAt });
-    }
+    if (running) return running; // a gravação em andamento pega a mudança nova no fim
+    if (!latest) return Promise.resolve();
+    running = saveLoop().finally(() => {
+      running = null;
+    });
+    return running;
   }
 
   return {
@@ -96,8 +102,10 @@ export function createCloudPersistence(opts: {
       if (status.kind !== 'saving') setStatus({ kind: 'pending' });
       schedule(delay);
     },
-    dispose() {
-      void flush();
+    /** Grava agora. Resolve `true` se tudo chegou no banco. */
+    async dispose() {
+      await flush();
+      return latest === null;
     },
   };
 }

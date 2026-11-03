@@ -24,7 +24,7 @@ export interface Persistence {
   /** Chamado a cada mudança. Pode adiar a gravação (debounce). */
   save(state: WizardState): void;
   /** Grava o que estiver pendente (ao trocar de ficha ou sair da página). Pode ser chamado mais de uma vez. */
-  dispose?(): void;
+  dispose?(): void | Promise<boolean>;
 }
 
 export { normalizeDraft };
@@ -99,9 +99,12 @@ export function unbindStore(key: string) {
   if (bound.key === key) bound = { key: '', persistence: bound.persistence };
 }
 
-/** Grava já o que estiver pendente (ao sair da página do assistente). */
-export function flushStore() {
-  bound.persistence.dispose?.();
+/**
+ * Grava já o que estiver pendente (ao sair da página do assistente).
+ * Resolve `true` quando tudo foi salvo (no localStorage é imediato).
+ */
+export async function flushStore(): Promise<boolean> {
+  return (await bound.persistence.dispose?.()) ?? true;
 }
 
 /** Volta para o localStorage (página do visitante). */
