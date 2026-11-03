@@ -45,6 +45,21 @@ npm run data:build
 
 Os tipos de todos esses arquivos estão em `src/lib/sr5/types.ts`.
 
+## Como o app é organizado
+
+O assistente tem 10 passos: Conceito, Prioridades, Metatipo, Atributos, Magia/Ressonância, Qualidades, Perícias,
+Recursos, Contatos e Revisão. Erros bloqueiam o avanço; avisos (pontos sobrando etc.) só informam.
+
+| Pasta | O que tem |
+|---|---|
+| `src/components/wizard` | Casca do assistente: progresso, navegação, painel de resumo, glossário |
+| `src/components/steps` | Um componente por passo |
+| `src/components/ui.tsx` | Peças comuns: botão "?", seletor numérico, cartões, lista de avisos |
+| `src/content/help.ts` | Textos de ajuda e glossário (escritos por nós, não copiados dos livros) |
+| `src/lib/store.ts` | Ficha em criação, salva no `localStorage` |
+
+Na Revisão dá para exportar/importar a ficha em JSON e salvar em PDF pela janela de impressão do navegador.
+
 ## Motor de regras
 
 `src/lib/sr5/rules` é TypeScript puro (sem React). `evaluate(rascunho)` devolve:
