@@ -45,6 +45,22 @@ npm run data:build
 
 Os tipos de todos esses arquivos estão em `src/lib/sr5/types.ts`.
 
+## Motor de regras
+
+`src/lib/sr5/rules` é TypeScript puro (sem React). `evaluate(rascunho)` devolve:
+
+- pontos restantes de cada orçamento (atributos, especiais, perícias, conhecimento, contatos, karma, nuyen, pontos de poder…);
+- valores derivados (limites, iniciativa, monitores de condição, Essência…);
+- a lista de problemas, cada um com gravidade (`error` bloqueia o passo; `warning` e `info` não) e o passo do assistente onde se resolve;
+- o que está disponível para escolher e, quando não está, o motivo.
+
+O formato da ficha em criação está em `src/lib/sr5/character.ts`.
+
+```bash
+npm test          # roda os testes uma vez
+npm run test:watch
+```
+
 ## Documentação
 
 - `docs/fase1-investigacao.md` — mapa dos dados do Chummer5a e regras derivadas.
