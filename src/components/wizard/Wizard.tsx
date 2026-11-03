@@ -37,7 +37,8 @@ const STEPS: { key: StepKey; title: string; Component: (p: StepProps) => ReactNo
   { key: 'review', title: 'Revisão', Component: ReviewStep },
 ];
 
-export function Wizard() {
+/** `account`: botão de login/conta (fica fora do assistente para os testes não dependerem do Clerk). */
+export function Wizard({ account }: { account?: ReactNode } = {}) {
   const w = useWizard();
   const draft = w?.draft;
   const result = useMemo(() => (draft ? evaluate(draft) : null), [draft]);
@@ -87,6 +88,7 @@ export function Wizard() {
             >
               Nova ficha
             </Button>
+            {account}
           </div>
         </div>
         <ProgressBar

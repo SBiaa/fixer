@@ -38,6 +38,10 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+        env:
+          # Chaves da instância de desenvolvimento do Clerk (sem elas o proxy responde 500).
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
