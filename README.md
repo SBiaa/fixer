@@ -71,10 +71,32 @@ Na Revisão dá para exportar/importar a ficha em JSON e salvar em PDF pela jane
 
 O formato da ficha em criação está em `src/lib/sr5/character.ts`.
 
+## Testes
+
 ```bash
-npm test          # roda os testes uma vez
-npm run test:watch
+npm test               # testes de unidade e de componentes (Vitest), uma vez
+npm run test:watch     # o mesmo, rodando de novo a cada mudança
+npm run test:coverage  # com relatório de cobertura em coverage/
+npm run test:e2e       # ponta a ponta no navegador (Playwright)
+npm run test:e2e:ui    # Playwright com a interface visual, bom para depurar
+npm run test:all       # tipos + lint + unidade + ponta a ponta
 ```
+
+Na primeira vez, baixe o navegador do Playwright: `npx playwright install chromium`.
+
+| Camada | Onde | O que cobre |
+| --- | --- | --- |
+| Regras | `src/lib/sr5/rules/__tests__` | `evaluate()` com fichas montadas em código; casos conferidos à mão com o livro |
+| Store e JSON | `src/lib/__tests__`, `src/lib/sr5/__tests__` | localStorage, fichas antigas, export/import e integridade dos dados gerados |
+| Scripts de dados | `scripts/build-data/__tests__` | conversão do XML do Chummer, com XMLs pequenos em `fixtures/` |
+| Componentes | `src/components/**/__tests__` | o assistente renderizado no jsdom com Testing Library |
+| Ponta a ponta | `e2e/` | o app de verdade no Chromium: criar um personagem inteiro, recarregar, importar e exportar |
+
+- Testes de unidade rodam em Node. Arquivos que precisam de DOM começam com `// @vitest-environment jsdom`.
+- O E2E faz o build de produção e sobe na porta 3100, para não brigar com um `npm run dev` aberto.
+- `e2e/fixtures/ficha-valida.json` é uma ficha completa usada pelo E2E e pelos testes de componente. Um teste
+  de unidade garante que ela continua válida quando as regras mudam.
+- A CI (`.github/workflows/testes.yml`) roda tudo a cada push na `main` e em cada pull request.
 
 ## Documentação
 
