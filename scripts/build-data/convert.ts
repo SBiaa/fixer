@@ -546,6 +546,7 @@ export function convertPowers(ctx: Ctx): AdeptPower[] {
       points: num(x.points),
       levels: bool(x.levels),
       maxLevels: has(x.maxlevels) ? num(x.maxlevels) : null,
+      ...(has(x.extrapointcost) && num(x.extrapointcost) > 0 ? { extraPointCost: num(x.extrapointcost) } : {}),
       ...(has(x.action) ? { action: text(x.action) } : {}),
     }));
 }

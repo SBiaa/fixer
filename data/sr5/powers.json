@@ -140,7 +140,8 @@
     "page": 310,
     "points": 1,
     "levels": true,
-    "maxLevels": 3
+    "maxLevels": 3,
+    "extraPointCost": 0.5
   },
   {
     "id": "1376c13b-9a01-4873-b935-5b7d91e03785",

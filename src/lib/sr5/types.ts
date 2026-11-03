@@ -276,6 +276,8 @@ export interface AdeptPower extends Sourced, Named {
   points: number;
   levels: boolean;
   maxLevels?: number | null;
+  /** Custo fixo somado uma vez, além do custo por nível (ex.: Reflexos Melhorados +0,5). */
+  extraPointCost?: number;
   action?: string;
 }
 
