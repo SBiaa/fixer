@@ -10,7 +10,7 @@
     "data:build": "tsx scripts/build-data/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:coverage": "vitest run --coverage",

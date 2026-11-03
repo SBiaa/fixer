@@ -12,10 +12,11 @@ concurrency:
 jobs:
   unidade:
     name: Tipos, lint e testes de unidade
-    runs-on: ubuntu-latest
+    # Fixo em 24.04: o Playwright ainda não suporta o Ubuntu 26.04 do ubuntu-latest.
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -26,10 +27,11 @@ jobs:
 
   e2e:
     name: Ponta a ponta (Playwright)
-    runs-on: ubuntu-latest
+    # Fixo em 24.04: o Playwright ainda não suporta o Ubuntu 26.04 do ubuntu-latest.
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
