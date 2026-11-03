@@ -33,7 +33,7 @@ export class NotFoundError extends Error {
  */
 export const requireUserId = cache(async (): Promise<string> => {
   const { userId } = await auth.protect();
-  await db.insert(users).values({ id: userId }).onConflictDoNothing();
+  await db().insert(users).values({ id: userId }).onConflictDoNothing();
   return userId;
 });
 
@@ -59,7 +59,7 @@ export interface CharacterSummary {
 
 export async function listCharacters(): Promise<CharacterSummary[]> {
   const userId = await requireUserId();
-  return db
+  return db()
     .select({
       id: characters.id,
       name: characters.name,
@@ -75,7 +75,7 @@ export async function listCharacters(): Promise<CharacterSummary[]> {
 export async function getCharacter(id: string) {
   if (!UUID.test(id)) throw new NotFoundError();
   const userId = await requireUserId();
-  const [row] = await db
+  const [row] = await db()
     .select()
     .from(characters)
     .where(and(eq(characters.id, id), eq(characters.ownerId, userId)));
@@ -85,7 +85,7 @@ export async function getCharacter(id: string) {
 
 export async function createCharacter(draft: CharacterDraft = createEmptyDraft()): Promise<string> {
   const userId = await requireUserId();
-  const [row] = await db
+  const [row] = await db()
     .insert(characters)
     .values({
       ownerId: userId,
@@ -101,7 +101,7 @@ export async function saveCharacter(id: string, rawDraft: unknown, rawStep: unkn
   if (!UUID.test(id)) throw new NotFoundError();
   const userId = await requireUserId();
   const draft = parseDraft(rawDraft);
-  const [row] = await db
+  const [row] = await db()
     .update(characters)
     .set({
       draft,
@@ -128,7 +128,7 @@ export async function duplicateCharacter(id: string): Promise<string> {
 export async function deleteCharacter(id: string): Promise<void> {
   if (!UUID.test(id)) throw new NotFoundError();
   const userId = await requireUserId();
-  const deleted = await db
+  const deleted = await db()
     .delete(characters)
     .where(and(eq(characters.id, id), eq(characters.ownerId, userId)))
     .returning({ id: characters.id });
