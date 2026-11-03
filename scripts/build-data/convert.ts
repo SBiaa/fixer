@@ -249,7 +249,7 @@ const GROUP_PT: Record<string, string> = {
   Athletics: 'Atletismo',
   Biotech: 'Biotecnologia',
   'Close Combat': 'Combate Corpo a Corpo',
-  Conjuring: 'Conjuração',
+  Conjuring: 'Convocação',
   Cracking: 'Invasão',
   Electronics: 'Eletrônica',
   Enchanting: 'Encantamento',
