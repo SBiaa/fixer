@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState, type ReactNode } from 'react';
-import { normalizeDraft, replaceDraft } from '@/lib/store';
+import { replaceDraft } from '@/lib/store';
+import { exportFilename, exportJson as toJson, parseImport } from '@/lib/sr5/io';
 import { label, sr5Data } from '@/lib/sr5/data';
 import { ATTR_LABEL, fmtNuyen, isComplete, STEP_ORDER, WARE_GRADES, type StepKey } from '@/lib/sr5/rules';
 import type { AttrKey } from '@/lib/sr5/types';
@@ -23,27 +24,20 @@ function download(filename: string, text: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-function slug(s: string) {
-  return s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'personagem';
-}
-
 export function ReviewStep({ draft, result, goTo }: StepProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string>();
   const complete = isComplete(result);
-  const name = draft.concept.alias || draft.concept.name || 'personagem';
 
-  const exportJson = () =>
-    download(`${slug(name)}.json`, JSON.stringify({ app: 'fixer-sr5', format: 1, exportedAt: new Date().toISOString(), draft }, null, 2), 'application/json');
+  const exportJson = () => download(exportFilename(draft), toJson(draft), 'application/json');
 
   const importJson = async (file: File) => {
     try {
-      const parsed = JSON.parse(await file.text());
-      const draftIn = normalizeDraft(parsed?.draft ?? parsed);
+      const draftIn = parseImport(await file.text());
       if (confirm('Substituir a ficha atual pela importada?')) replaceDraft(draftIn);
       setImportError(undefined);
     } catch (e) {
-      setImportError(e instanceof Error && e.message.includes('Versão') ? e.message : 'Arquivo inválido: não parece uma ficha exportada por este app.');
+      setImportError((e as Error).message);
     }
   };
 
