@@ -2,7 +2,7 @@
  * Export e import da ficha em JSON.
  * Fica fora do componente para dar para testar sem navegador.
  */
-import { normalizeDraft } from '../store';
+import { normalizeDraft } from './character';
 import type { CharacterDraft } from './character';
 
 export const EXPORT_APP = 'fixer-sr5';

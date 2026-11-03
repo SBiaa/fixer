@@ -1,6 +1,6 @@
 import { AccountMenu } from '@/components/AccountMenu';
-import { Wizard } from '@/components/wizard/Wizard';
+import { LocalWizard } from '@/components/wizard/LocalWizard';
 
 export default function Home() {
-  return <Wizard account={<AccountMenu />} />;
+  return <LocalWizard account={<AccountMenu showMyCharacters />} />;
 }

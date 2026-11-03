@@ -163,3 +163,34 @@ export function createEmptyDraft(): CharacterDraft {
     karmaToNuyen: 0,
   };
 }
+
+/** Completa campos que faltam (fichas salvas por versões antigas). */
+export function normalizeDraft(raw: unknown): CharacterDraft {
+  const empty = createEmptyDraft();
+  if (!raw || typeof raw !== 'object') return empty;
+  const d = raw as Partial<CharacterDraft>;
+  if (d.schemaVersion !== DRAFT_SCHEMA_VERSION) throw new Error('Versão de ficha não suportada.');
+  return {
+    ...empty,
+    ...d,
+    concept: { ...empty.concept, ...d.concept },
+    attributes: { ...empty.attributes, ...d.attributes },
+    special: { ...empty.special, ...d.special },
+    magic: { ...empty.magic, ...d.magic },
+  };
+}
+
+/** Nome para listas: codinome, senão nome, senão "Sem nome". */
+export function characterDisplayName(draft: Pick<CharacterDraft, 'concept'>): string {
+  return draft.concept.alias?.trim() || draft.concept.name?.trim() || 'Sem nome';
+}
+
+/** Ficha ainda sem nenhuma escolha (não vale a pena importar nem salvar). */
+export function isBlankDraft(draft: CharacterDraft): boolean {
+  return (
+    !draft.concept.name?.trim() &&
+    !draft.concept.alias?.trim() &&
+    !draft.metatypeId &&
+    Object.keys(draft.priorities).length === 0
+  );
+}

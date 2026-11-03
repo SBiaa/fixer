@@ -97,13 +97,13 @@ Também mostra Essência de cada um, papel declarado (`concept.role`) e alertas
 
 Cada fase termina com algo usável em produção.
 
-### Fase 2.0 — Fundação
+### Fase 2.0 — Fundação ✅
 - Deploy na Vercel do app atual.
 - Neon + Drizzle + primeira migração; Clerk com login e `proxy.ts` protegendo
   as rotas privadas.
 - CI: migrações rodando nos previews (banco por branch do Neon).
 
-### Fase 2.1 — Contas e várias fichas
+### Fase 2.1 — Contas e várias fichas ✅
 - Tela "Minhas fichas" (criar, duplicar, apagar, abrir).
 - Assistente salva no banco (autosave com debounce via Server Action), no lugar
   do `localStorage`.
@@ -136,6 +136,7 @@ Cada fase termina com algo usável em produção.
 ## Decisões em aberto
 
 1. O time vê **tudo** da ficha do colega (nuyen, equipamento) ou um resumo?
-2. Dá pra usar o assistente **sem login** (e só pedir conta na hora de salvar)?
+2. ~~Dá pra usar o assistente sem login?~~ **Decidido:** sim. O visitante usa a página
+   inicial com a ficha no navegador; ao entrar, "Minhas fichas" oferece importar essa ficha.
 3. Uma ficha pode estar em **mais de um time** ao mesmo tempo?
 4. Licença: manter o repositório público por causa da GPL dos dados do Chummer5a.

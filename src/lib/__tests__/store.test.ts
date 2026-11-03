@@ -106,6 +106,68 @@ describe('alterações', () => {
   });
 });
 
+describe('trocar onde a ficha é salva', () => {
+  const memory = (initial: { draft: ReturnType<typeof createEmptyDraft>; step: number }) => {
+    const saves: unknown[] = [];
+    return { saves, persistence: { load: () => initial, save: (s: unknown) => saves.push(s), dispose: vi.fn() } };
+  };
+
+  it('bindStore passa a ler e gravar no lugar novo, sem tocar no localStorage', async () => {
+    const { bindStore, updateDraft, getStateForTests } = await storeWithSnapshot();
+    const initial = { draft: { ...createEmptyDraft(), concept: { name: 'Da conta' } }, step: 4 };
+    const m = memory(initial);
+    bindStore('cloud:1', () => m.persistence);
+
+    expect(getStateForTests()).toEqual(initial);
+    updateDraft((d) => {
+      d.concept.name = 'Mudou';
+    });
+    expect(m.saves).toHaveLength(1);
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it('mesma chave não recria; chave nova grava o pendente da anterior', async () => {
+    const { bindStore } = await freshStore();
+    const a = memory({ draft: createEmptyDraft(), step: 0 });
+    const make = vi.fn(() => a.persistence);
+    bindStore('cloud:1', make);
+    bindStore('cloud:1', make);
+    expect(make).toHaveBeenCalledTimes(1);
+
+    bindStore('cloud:2', () => memory({ draft: createEmptyDraft(), step: 0 }).persistence);
+    expect(a.persistence.dispose).toHaveBeenCalled();
+  });
+
+  it('unbindStore faz a mesma chave recarregar do servidor na volta', async () => {
+    const { bindStore, unbindStore } = await freshStore();
+    const make = vi.fn(() => memory({ draft: createEmptyDraft(), step: 0 }).persistence);
+    bindStore('cloud:1', make);
+    unbindStore('cloud:1');
+    bindStore('cloud:1', make);
+    expect(make).toHaveBeenCalledTimes(2);
+  });
+
+  it('bindLocalStore volta a usar o localStorage', async () => {
+    const { bindStore, bindLocalStore, updateDraft } = await freshStore();
+    bindStore('cloud:1', () => memory({ draft: createEmptyDraft(), step: 0 }).persistence);
+    bindLocalStore();
+    updateDraft((d) => {
+      d.concept.name = 'Local';
+    });
+    expect(saved().draft.concept.name).toBe('Local');
+  });
+
+  it('readLocalState e clearLocalState', async () => {
+    const { readLocalState, clearLocalState } = await freshStore();
+    expect(readLocalState()).toBeNull();
+    const draft = { ...createEmptyDraft(), concept: { name: 'Agulha' } };
+    localStorage.setItem(KEY, JSON.stringify({ draft, step: 2 }));
+    expect(readLocalState()).toEqual({ draft, step: 2 });
+    clearLocalState();
+    expect(readLocalState()).toBeNull();
+  });
+});
+
 /** Lê o estado atual pela mesma via que o React usa (useSyncExternalStore). */
 async function storeWithSnapshot() {
   const store = await freshStore();

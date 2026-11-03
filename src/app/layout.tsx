@@ -16,7 +16,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <ClerkProvider localization={ptBR}>
+    <ClerkProvider
+      localization={ptBR}
+      signInUrl="/entrar"
+      signUpUrl="/cadastro"
+      signInFallbackRedirectUrl="/fichas"
+      signUpFallbackRedirectUrl="/fichas"
+    >
       <html
         lang="pt-BR"
         className={`${geistSans.variable} ${geistMono.variable} ${chakra.variable} h-full antialiased`}

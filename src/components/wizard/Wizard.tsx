@@ -37,8 +37,11 @@ const STEPS: { key: StepKey; title: string; Component: (p: StepProps) => ReactNo
   { key: 'review', title: 'Revisão', Component: ReviewStep },
 ];
 
-/** `account`: botão de login/conta (fica fora do assistente para os testes não dependerem do Clerk). */
-export function Wizard({ account }: { account?: ReactNode } = {}) {
+/**
+ * `account`: botão de login/conta (fica fora do assistente para os testes não dependerem do Clerk).
+ * `actions`: substitui o botão "Nova ficha" (na ficha da conta: status de salvamento e link para a lista).
+ */
+export function Wizard({ account, actions }: { account?: ReactNode; actions?: ReactNode } = {}) {
   const w = useWizard();
   const draft = w?.draft;
   const result = useMemo(() => (draft ? evaluate(draft) : null), [draft]);
@@ -79,15 +82,17 @@ export function Wizard({ account }: { account?: ReactNode } = {}) {
           <div className="flex items-center gap-1">
             <Button variant="ghost" className="!px-2 sm:!px-3.5" onClick={() => setGlossaryOpen(true)}>Glossário</Button>
             <Button variant="ghost" className="!px-2 sm:!px-3.5 lg:hidden" onClick={() => setSummaryOpen(true)}>Resumo</Button>
-            <Button
-              variant="ghost"
-              className="whitespace-nowrap !px-2 sm:!px-3.5"
-              onClick={() => {
-                if (confirm('Começar uma ficha nova? A atual será apagada deste navegador.')) resetDraft();
-              }}
-            >
-              Nova ficha
-            </Button>
+            {actions ?? (
+              <Button
+                variant="ghost"
+                className="whitespace-nowrap !px-2 sm:!px-3.5"
+                onClick={() => {
+                  if (confirm('Começar uma ficha nova? A atual será apagada deste navegador.')) resetDraft();
+                }}
+              >
+                Nova ficha
+              </Button>
+            )}
             {account}
           </div>
         </div>
