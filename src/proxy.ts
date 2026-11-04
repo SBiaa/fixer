@@ -1,12 +1,15 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clerkMiddleware } from '@clerk/nextjs/server';
 
 // "Minhas fichas" exige login. O assistente da página inicial continua aberto para visitantes.
-// (As funções do servidor também conferem o login; isto só manda para a tela de entrar mais cedo.)
-const isPrivate = createRouteMatcher(['/fichas(.*)']);
+// Quem protege de verdade são as páginas e Server Actions (`requireUserId()` em `server/characters.ts`);
+// isto só manda o visitante para a tela de entrar antes de a página começar a renderizar.
+function isPrivate(pathname: string) {
+  return pathname === '/fichas' || pathname.startsWith('/fichas/');
+}
 
 export default clerkMiddleware(
   async (auth, req) => {
-    if (isPrivate(req)) await auth.protect();
+    if (isPrivate(req.nextUrl.pathname)) await auth.protect();
   },
   // Telas de login do próprio app (em português), no lugar das hospedadas pelo Clerk.
   { signInUrl: '/entrar', signUpUrl: '/cadastro' },

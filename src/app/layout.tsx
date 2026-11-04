@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
-import { ClerkProvider } from '@clerk/nextjs';
-import { ptBR } from '@clerk/localizations';
 import { Chakra_Petch, Geist, Geist_Mono } from 'next/font/google';
+import { AuthProvider } from '@/components/AuthProvider';
 import './globals.css';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
@@ -16,19 +15,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <ClerkProvider
-      localization={ptBR}
-      signInUrl="/entrar"
-      signUpUrl="/cadastro"
-      signInFallbackRedirectUrl="/fichas"
-      signUpFallbackRedirectUrl="/fichas"
-    >
+    <AuthProvider>
       <html
         lang="pt-BR"
         className={`${geistSans.variable} ${geistMono.variable} ${chakra.variable} h-full antialiased`}
       >
         <body className="min-h-full flex flex-col">{children}</body>
       </html>
-    </ClerkProvider>
+    </AuthProvider>
   );
 }
