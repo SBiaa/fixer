@@ -1,10 +1,12 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// "Minhas fichas" exige login. O assistente da página inicial continua aberto para visitantes.
+// "Minhas fichas", "Times" e convites exigem login. O assistente da página inicial continua aberto para visitantes.
 // Quem protege de verdade são as páginas e Server Actions (`requireUserId()` em `server/characters.ts`);
 // isto só manda o visitante para a tela de entrar antes de a página começar a renderizar.
+const PRIVATE = ['/fichas', '/times', '/convite'];
+
 function isPrivate(pathname: string) {
-  return pathname === '/fichas' || pathname.startsWith('/fichas/');
+  return PRIVATE.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export default clerkMiddleware(
