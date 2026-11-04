@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { AccountMenu } from '@/components/AccountMenu';
@@ -57,13 +56,7 @@ async function Character({ params }: { params: PageProps<'/fichas/[id]'>['params
       goals={play.goals}
       header={
         <AppHeader>
-          <Link
-            href="/fichas"
-            className="inline-flex items-center whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-muted transition hover:bg-surface-2 hover:text-ink sm:px-3.5"
-          >
-            Minhas fichas
-          </Link>
-          <AccountMenu />
+          <AccountMenu showNav />
         </AppHeader>
       }
     />

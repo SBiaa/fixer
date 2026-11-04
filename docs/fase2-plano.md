@@ -120,7 +120,7 @@ Cada fase termina com algo usável em produção.
 - Metas de avanço calculam o custo em karma (regras de avanço do SR5) e mostram
   quanto falta com o karma atual.
 
-### Fase 2.4 — Time
+### Fase 2.4 — Time ✅
 - Criar time, gerar/revogar link de convite, entrar com uma ficha, sair.
 - Ver fichas dos colegas (só leitura) e o painel do time.
 
@@ -135,8 +135,9 @@ Cada fase termina com algo usável em produção.
 
 ## Decisões em aberto
 
-1. O time vê **tudo** da ficha do colega (nuyen, equipamento) ou um resumo?
+1. ~~O que o time vê da ficha do colega?~~ **Decidido:** a ficha completa, o dano, o karma
+   e as metas ativas. Saldo de nuyen, histórico e anotações ficam privados.
 2. ~~Dá pra usar o assistente sem login?~~ **Decidido:** sim. O visitante usa a página
    inicial com a ficha no navegador; ao entrar, "Minhas fichas" oferece importar essa ficha.
-3. Uma ficha pode estar em **mais de um time** ao mesmo tempo?
+3. ~~Uma ficha pode estar em mais de um time?~~ **Decidido:** sim.
 4. Licença: manter o repositório público por causa da GPL dos dados do Chummer5a.

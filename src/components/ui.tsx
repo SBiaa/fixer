@@ -4,9 +4,9 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import type { Help } from '@/content/help';
 import type { Budget, Issue } from '@/lib/sr5/rules';
 
-export function cx(...parts: (string | false | null | undefined)[]): string {
-  return parts.filter(Boolean).join(' ');
-}
+import { cx } from '@/lib/cx';
+
+export { cx };
 
 // ---------------------------------------------------------------------------
 // "?" com explicação curta

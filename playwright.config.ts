@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 3100;
+// E2E_PORT: para rodar quando a 3100 estiver ocupada por outro projeto.
+const PORT = Number(process.env.E2E_PORT ?? 3100);
 const CI = !!process.env.CI;
 
 /**

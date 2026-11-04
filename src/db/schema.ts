@@ -2,7 +2,7 @@
  * Tabelas do banco (Neon Postgres, via Drizzle).
  * Mudou algo aqui? Rode `npm run db:generate` para criar a migração.
  */
-import { date, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import type { CharacterDraft } from '@/lib/sr5/character';
 import type { GoalTarget } from '@/lib/sr5/goals';
 
@@ -110,4 +110,31 @@ export const goals = pgTable(
     completedAt: timestamp('completed_at', { withTimezone: true }),
   },
   (t) => [index('goals_character_idx').on(t.characterId, t.position)],
+);
+
+/** Time de jogadores. Quem tem o link de convite entra com uma ficha. */
+export const teams = pgTable('teams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  ownerId: text('owner_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  /** Código do link de convite. Trocar o código invalida o link antigo. */
+  inviteCode: text('invite_code').notNull().unique(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Quem está no time é a ficha, não o jogador. Uma ficha pode estar em vários times. */
+export const teamMembers = pgTable(
+  'team_members',
+  {
+    teamId: uuid('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id, { onDelete: 'cascade' }),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.teamId, t.characterId] }), index('team_members_character_idx').on(t.characterId)],
 );

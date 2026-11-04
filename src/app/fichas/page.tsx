@@ -14,7 +14,7 @@ export default function MyCharactersPage() {
   return (
     <div className="flex flex-1 flex-col">
       <AppHeader>
-        <AccountMenu />
+        <AccountMenu showNav />
       </AppHeader>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
