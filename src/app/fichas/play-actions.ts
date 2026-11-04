@@ -5,12 +5,17 @@ import { InputError } from '@/lib/sr5/play';
 import { NotFoundError } from '@/server/characters';
 import {
   addLedgerEntry,
+  completeGoal,
+  createGoal,
   createMission,
+  deleteGoal,
   deleteLedgerEntry,
   deleteMission,
   finalizeCharacter,
+  moveGoal,
   setDamage,
   setPlayNotes,
+  updateGoal,
   updateMission,
 } from '@/server/play';
 
@@ -66,4 +71,28 @@ export async function updateMissionAction(
 
 export async function deleteMissionAction(id: string, missionId: string) {
   return run(() => deleteMission(id, missionId));
+}
+
+export async function createGoalAction(id: string, input: { title: unknown; target: unknown; notes?: unknown }) {
+  return run(() => createGoal(id, input));
+}
+
+export async function updateGoalAction(
+  id: string,
+  goalId: string,
+  input: { title?: unknown; notes?: unknown; status?: unknown },
+) {
+  return run(() => updateGoal(id, goalId, input));
+}
+
+export async function moveGoalAction(id: string, goalId: string, direction: -1 | 1) {
+  return run(() => moveGoal(id, goalId, direction));
+}
+
+export async function completeGoalAction(id: string, goalId: string, pay: boolean) {
+  return run(() => completeGoal(id, goalId, pay));
+}
+
+export async function deleteGoalAction(id: string, goalId: string) {
+  return run(() => deleteGoal(id, goalId));
 }

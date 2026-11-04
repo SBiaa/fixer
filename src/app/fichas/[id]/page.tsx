@@ -54,6 +54,7 @@ async function Character({ params }: { params: PageProps<'/fichas/[id]'>['params
       }}
       entries={play.entries}
       missions={play.missions}
+      goals={play.goals}
       header={
         <AppHeader>
           <Link

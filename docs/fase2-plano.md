@@ -115,7 +115,7 @@ Cada fase termina com algo usável em produção.
 - Tela de jogo: nuyen e karma com histórico, monitor de condição, notas.
 - Diário de missões, com recompensas lançadas no histórico.
 
-### Fase 2.3 — Planejamento
+### Fase 2.3 — Planejamento ✅
 - Metas por personagem, com ordem e status.
 - Metas de avanço calculam o custo em karma (regras de avanço do SR5) e mostram
   quanto falta com o karma atual.

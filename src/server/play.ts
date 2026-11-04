@@ -1,16 +1,17 @@
 /**
- * Ficha em jogo: finalizar a criação, nuyen/karma, dano, anotações e missões.
+ * Ficha em jogo: finalizar a criação, nuyen/karma, dano, anotações, missões e metas.
  * Toda função confere que a ficha é do usuário logado.
  */
 import 'server-only';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, max } from 'drizzle-orm';
 import { db } from '@/db';
-import { characters, ledger, missions } from '@/db/schema';
+import { characters, goals, ledger, missions } from '@/db/schema';
+import { goalCost, parseGoalTarget, parseGoalTitle } from '@/lib/sr5/goals';
 import { evaluate, isComplete } from '@/lib/sr5/rules';
 import {
   clampDamage,
-  InputError,
   conditionLimits,
+  InputError,
   MAX_NOTES_LENGTH,
   MAX_TITLE_LENGTH,
   parseLedgerInput,
@@ -21,7 +22,6 @@ import { getCharacter, NotFoundError } from './characters';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-
 /** Ficha do usuário, já em jogo. */
 async function getActive(id: string) {
   const c = await getCharacter(id);
@@ -31,11 +31,12 @@ async function getActive(id: string) {
 
 export async function getPlayData(id: string) {
   const character = await getActive(id);
-  const [entries, missionList] = await Promise.all([
+  const [entries, missionList, goalList] = await Promise.all([
     db().select().from(ledger).where(eq(ledger.characterId, id)).orderBy(desc(ledger.createdAt)),
     db().select().from(missions).where(eq(missions.characterId, id)).orderBy(desc(missions.createdAt)),
+    db().select().from(goals).where(eq(goals.characterId, id)).orderBy(asc(goals.position), asc(goals.createdAt)),
   ]);
-  return { character, entries, missions: missionList };
+  return { character, entries, missions: missionList, goals: goalList };
 }
 
 /**
@@ -164,3 +165,111 @@ export async function deleteMission(id: string, missionId: string): Promise<void
   await db().delete(missions).where(eq(missions.id, missionId));
 }
 
+
+// ---------------------------------------------------------------------------
+// Metas
+
+async function getGoalOf(characterId: string, goalId: string) {
+  if (!UUID.test(goalId)) throw new NotFoundError();
+  const [g] = await db()
+    .select()
+    .from(goals)
+    .where(and(eq(goals.id, goalId), eq(goals.characterId, characterId)));
+  if (!g) throw new NotFoundError();
+  return g;
+}
+
+function parseNotes(notes: unknown): string {
+  const text = typeof notes === 'string' ? notes : '';
+  if (text.length > MAX_NOTES_LENGTH) throw new InputError('Anotações grandes demais.');
+  return text;
+}
+
+export async function createGoal(
+  id: string,
+  input: { title: unknown; target: unknown; notes?: unknown },
+): Promise<string> {
+  await getActive(id);
+  const title = parseGoalTitle(input.title);
+  const target = parseGoalTarget(input.target);
+  const [{ last }] = await db()
+    .select({ last: max(goals.position) })
+    .from(goals)
+    .where(eq(goals.characterId, id));
+  const [g] = await db()
+    .insert(goals)
+    .values({ characterId: id, title, target, notes: parseNotes(input.notes), position: (last ?? -1) + 1 })
+    .returning({ id: goals.id });
+  return g.id;
+}
+
+export async function updateGoal(
+  id: string,
+  goalId: string,
+  input: { title?: unknown; notes?: unknown; status?: unknown },
+): Promise<void> {
+  await getActive(id);
+  const g = await getGoalOf(id, goalId);
+  const set: Partial<typeof goals.$inferInsert> = {};
+  if (input.title !== undefined) set.title = parseGoalTitle(input.title);
+  if (input.notes !== undefined) set.notes = parseNotes(input.notes);
+  // Concluir passa por completeGoal; aqui só desistir ou voltar a perseguir.
+  if (input.status === 'active' || input.status === 'dropped') {
+    if (g.status === 'done') throw new InputError('Meta já concluída.');
+    set.status = input.status;
+  }
+  if (Object.keys(set).length) await db().update(goals).set(set).where(eq(goals.id, goalId));
+}
+
+/** Troca a meta de lugar com a vizinha de cima (-1) ou de baixo (+1) entre as ativas. */
+export async function moveGoal(id: string, goalId: string, direction: unknown): Promise<void> {
+  if (direction !== -1 && direction !== 1) throw new InputError('Direção inválida.');
+  await getActive(id);
+  await getGoalOf(id, goalId);
+  const active = await db()
+    .select({ id: goals.id, position: goals.position })
+    .from(goals)
+    .where(and(eq(goals.characterId, id), eq(goals.status, 'active')))
+    .orderBy(asc(goals.position), asc(goals.createdAt));
+  const i = active.findIndex((g) => g.id === goalId);
+  const j = i + direction;
+  if (i < 0 || j < 0 || j >= active.length) return;
+  // Renumera tudo na ordem nova (evita empates de posição).
+  [active[i], active[j]] = [active[j], active[i]];
+  await Promise.all(
+    active.map((g, position) => db().update(goals).set({ position }).where(eq(goals.id, g.id))),
+  );
+}
+
+/**
+ * Conclui a meta. Com `pay`, lança o custo no histórico (karma ou nuyen) como
+ * "Meta: <nome>". Só uma chamada vence: o update exige status 'active'.
+ */
+export async function completeGoal(id: string, goalId: string, pay: unknown): Promise<void> {
+  const c = await getActive(id);
+  const g = await getGoalOf(id, goalId);
+  if (g.status !== 'active') throw new InputError('Essa meta não está ativa.');
+  const all = await db().select().from(goals).where(eq(goals.characterId, id));
+  const cost = goalCost(g.target, evaluate(c.draft), all);
+  const charge = pay === true && cost.currency && cost.amount > 0 ? cost : null;
+
+  const [done] = await db()
+    .update(goals)
+    .set({ status: 'done', completedAt: new Date(), paid: charge ? charge.amount : null })
+    .where(and(eq(goals.id, goalId), eq(goals.status, 'active')))
+    .returning({ id: goals.id });
+  if (!done) throw new InputError('Essa meta não está ativa.');
+
+  if (charge?.currency) {
+    await db()
+      .insert(ledger)
+      .values({ characterId: id, kind: charge.currency, amount: -charge.amount, reason: `Meta: ${g.title}` });
+  }
+}
+
+export async function deleteGoal(id: string, goalId: string): Promise<void> {
+  await getActive(id);
+  await getGoalOf(id, goalId);
+  // Gastos já lançados ficam no histórico.
+  await db().delete(goals).where(eq(goals.id, goalId));
+}

@@ -1,4 +1,4 @@
-import type { ledger, missions } from '@/db/schema';
+import type { goals, ledger, missions } from '@/db/schema';
 
 export type PlayEntry = typeof ledger.$inferSelect;
 export type PlayMission = typeof missions.$inferSelect;
@@ -8,3 +8,5 @@ export const MISSION_STATUS_LABEL: Record<PlayMission['status'], string> = {
   active: 'Em andamento',
   done: 'Concluída',
 };
+
+export type PlayGoal = typeof goals.$inferSelect;

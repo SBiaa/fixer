@@ -10,13 +10,15 @@ import { CharacterSheet } from '../steps/ReviewStep';
 import { Button, Card, cx } from '../ui';
 import { Balances } from './Balances';
 import { ConditionMonitor } from './ConditionMonitor';
+import { Goals } from './Goals';
 import { Missions } from './Missions';
 import { NotesField } from './NotesField';
-import type { PlayEntry, PlayMission } from './types';
+import type { PlayEntry, PlayGoal, PlayMission } from './types';
 
-type Tab = 'play' | 'missions' | 'sheet';
+type Tab = 'play' | 'goals' | 'missions' | 'sheet';
 const TABS: { key: Tab; label: string }[] = [
   { key: 'play', label: 'Jogo' },
+  { key: 'goals', label: 'Metas' },
   { key: 'missions', label: 'Missões' },
   { key: 'sheet', label: 'Ficha completa' },
 ];
@@ -35,11 +37,13 @@ export function PlayView({
   character: c,
   entries,
   missions,
+  goals,
   header,
 }: {
   character: PlayCharacter;
   entries: PlayEntry[];
   missions: PlayMission[];
+  goals: PlayGoal[];
   header: ReactNode;
 }) {
   const [tab, setTab] = useState<Tab>('play');
@@ -103,6 +107,8 @@ export function PlayView({
           </div>
         )}
 
+        {tab === 'goals' && <Goals id={c.id} goals={goals} entries={entries} result={result} />}
+
         {tab === 'missions' && <Missions id={c.id} missions={missions} entries={entries} />}
 
         {tab === 'sheet' && (
@@ -114,7 +120,7 @@ export function PlayView({
               <Button onClick={download}>Exportar JSON</Button>
             </div>
             <p className="no-print text-xs text-faint">
-              Esta é a ficha como saiu da criação. Gastos de karma em evolução ainda não mudam os atributos aqui.
+              Esta é a ficha como saiu da criação. Metas concluídas e gastos de karma ainda não mudam os atributos aqui.
             </p>
             <CharacterSheet draft={c.draft} result={result} showRemaining={false} />
           </div>

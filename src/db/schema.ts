@@ -4,6 +4,7 @@
  */
 import { date, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import type { CharacterDraft } from '@/lib/sr5/character';
+import type { GoalTarget } from '@/lib/sr5/goals';
 
 /** Usuário do app. O id é o mesmo do Clerk (`user_...`). */
 export const users = pgTable('users', {
@@ -82,4 +83,31 @@ export const missions = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('missions_character_idx').on(t.characterId)],
+);
+
+export const goalStatus = pgEnum('goal_status', ['active', 'done', 'dropped']);
+
+/**
+ * Metas do personagem (planejamento). `target` diz o que a meta pede
+ * (ex.: { kind: 'attribute', attr: 'AGI', rating: 6 }); ver `lib/sr5/goals.ts`.
+ */
+export const goals = pgTable(
+  'goals',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    notes: text('notes').notNull().default(''),
+    target: jsonb('target').$type<GoalTarget>().notNull(),
+    status: goalStatus('status').notNull().default('active'),
+    /** Ordem de prioridade (menor = mais importante). */
+    position: integer('position').notNull().default(0),
+    /** Quanto foi lançado no histórico ao concluir (se foi). */
+    paid: integer('paid'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+  },
+  (t) => [index('goals_character_idx').on(t.characterId, t.position)],
 );
