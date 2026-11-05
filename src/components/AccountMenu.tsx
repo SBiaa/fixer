@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Show, SignInButton, UserButton } from '@clerk/nextjs';
 import { Button } from './ui';
+import { BASE_PATH } from '@/config/basePath';
 
 const linkClass =
   'inline-flex items-center whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-muted transition hover:bg-surface-2 hover:text-ink sm:px-3.5';
@@ -15,7 +16,7 @@ export function AccountMenu({ showNav = false }: { showNav?: boolean }) {
   return (
     <>
       <Show when="signed-out">
-        <SignInButton mode="modal" forceRedirectUrl="/fichas">
+        <SignInButton mode="modal" forceRedirectUrl={`${BASE_PATH}/fichas`}>
           <Button variant="ghost" className="whitespace-nowrap !px-2 sm:!px-3.5">
             Entrar
           </Button>

@@ -13,6 +13,7 @@ import {
 } from '@/app/times/actions';
 import { MAX_TITLE_LENGTH } from '@/lib/sr5/play';
 import { Button, cx, inputClass } from '../ui';
+import { BASE_PATH } from '@/config/basePath';
 
 const noop = () => () => {};
 
@@ -150,7 +151,7 @@ export function InviteLink({ teamId, code, isOwner }: { teamId: string; code: st
   const { pending, error, run } = useTeamAction();
   // A origem (domínio) só existe no navegador; no servidor fica vazia.
   const origin = useSyncExternalStore(noop, () => window.location.origin, () => '');
-  const url = `${origin}/convite/${code}`;
+  const url = `${origin}${BASE_PATH}/convite/${code}`;
 
   return (
     <div className="flex flex-col gap-2">

@@ -1,4 +1,5 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
+import { BASE_PATH } from '@/config/basePath';
 
 // "Minhas fichas", "Times" e convites exigem login. O assistente da página inicial continua aberto para visitantes.
 // Quem protege de verdade são as páginas e Server Actions (`requireUserId()` em `server/characters.ts`);
@@ -14,7 +15,7 @@ export default clerkMiddleware(
     if (isPrivate(req.nextUrl.pathname)) await auth.protect();
   },
   // Telas de login do próprio app (em português), no lugar das hospedadas pelo Clerk.
-  { signInUrl: '/entrar', signUpUrl: '/cadastro' },
+  { signInUrl: `${BASE_PATH}/entrar`, signUpUrl: `${BASE_PATH}/cadastro` },
 );
 
 export const config = {
